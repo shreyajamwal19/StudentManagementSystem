@@ -1,0 +1,44 @@
+[
+  {
+    "args": [
+      "REC000001",
+      "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+      "CS101",
+      "Quiz1",
+      20,
+      17.1,
+      "Entered",
+      1
+    ],
+    "canonical": "v1|REC000001|pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp|CS101|Quiz1|20|17.1|Entered|1",
+    "sha256": "33eac0dfbaa38a8bd8f2c4912711a86574d75069ab468e8357b83282b496abd4"
+  },
+  {
+    "args": [
+      "REC000002",
+      "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "CS102",
+      "EndTerm",
+      50,
+      "22.30",
+      "Locked",
+      3
+    ],
+    "canonical": "v1|REC000002|qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq|CS102|EndTerm|50|22.3|Locked|3",
+    "sha256": "238fadf18d7724819c42f3e2177b5ae9d0f808ab32c19be88326dd85548165a4"
+  },
+  {
+    "args": [
+      "REC000003",
+      "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+      "CS103",
+      "MidTerm",
+      30,
+      0.4,
+      "Submitted",
+      2
+    ],
+    "canonical": "v1|REC000003|rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr|CS103|MidTerm|30|0.4|Submitted|2",
+    "sha256": "bbbb20894a17d7da272bd60ff1e7946e0df98abc4740d37b07e16576808aab5c"
+  }
+]
