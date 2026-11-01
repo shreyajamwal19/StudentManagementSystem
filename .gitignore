@@ -38,3 +38,4 @@ venv/
 # Logs and temp artefacts (curated results in experiments/results ARE tracked)
 *.log
 experiments/**/tmp/
+.pytest_cache/

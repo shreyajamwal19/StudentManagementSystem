@@ -1,5 +1,9 @@
 # Architecture and Business Rules
 
+> **Implementation note:** the backend is Python (FastAPI) instead of the originally planned Java/Spring Boot, because Maven Central
+> was unreachable in the development sandbox. Blockchain integration will use web3.py instead of Web3j. This deviates from the
+> original stack; confirm with the supervisor and state it in the paper.
+
 ## Two systems, one core
 Both systems call the same `marks-core` service (same JPA entities, validators, state machine, RBAC checks).
 - **System A (conventional):** PostgreSQL + JWT/RBAC + ordinary application audit log (`audit_log`).

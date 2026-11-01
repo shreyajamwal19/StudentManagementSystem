@@ -9,11 +9,11 @@ Not a production university ERP.
 |---|---|
 | 1. Project setup, Git, PostgreSQL Docker Compose, docs | done |
 | 2. Schema + dataset import | done (verified; see experiments/results/import_verification.json) |
-| 3. System A (conventional baseline) | pending |
-| 4+. Besu, contract, Web3j, experiments, frontend | pending |
+| 3. System A (conventional baseline: JWT, RBAC, state machine, audit log) | done, 19 tests pass |
+| 4+. Besu, contract, web3.py, experiments, frontend | pending |
 
 ## Stack
-Java 17 / Spring Boot 3 / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / Web3j / React + Vite + Tailwind / Python (pandas, matplotlib).
+Python 3.12 / FastAPI (instead of Spring Boot, see docs/architecture.md) / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / web3.py / React + Vite + Tailwind / Python (pandas, matplotlib).
 
 ## Layout
 `backend/` Spring Boot · `contracts/` Solidity · `besu-network/` QBFT network · `frontend/` dashboard ·
@@ -33,6 +33,15 @@ Place `synthetic_student_marks_50000_1.csv` in `data/` and verify: `cd data && s
 pip install psycopg2-binary
 export PGHOST=localhost PGDATABASE=academic_records PGUSER=academic_app PGPASSWORD=... PSEUDONYM_PEPPER=...
 python3 scripts/import_dataset.py && python3 scripts/verify_import.py
+```
+
+## Run System A
+```bash
+pip install -r backend/requirements.txt
+export JWT_SECRET=<32+ random chars> SEED_PASSWORD=<demo password>   # plus PGHOST/PGDATABASE/PGUSER/PGPASSWORD
+python3 scripts/seed_users.py 20
+cd backend && uvicorn app.main:app --port 8000     # API docs at /docs
+cd backend && python3 -m pytest -q                  # uses a throw-away DB copy (role needs CREATEDB)
 ```
 
 ## Security rules
