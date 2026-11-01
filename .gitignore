@@ -39,3 +39,4 @@ venv/
 *.log
 experiments/**/tmp/
 .pytest_cache/
+besu-network/pids/
