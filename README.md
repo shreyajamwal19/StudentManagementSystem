@@ -10,7 +10,8 @@ Not a production university ERP.
 | 1. Project setup, Git, PostgreSQL Docker Compose, docs | done |
 | 2. Schema + dataset import | done (verified; see experiments/results/import_verification.json) |
 | 3. System A (conventional baseline: JWT, RBAC, state machine, audit log) | done, 19 tests pass |
-| 4+. Besu, contract, web3.py, experiments, frontend | pending |
+| 4. Besu QBFT network (4 validators) | done, verified |
+| 5+. Smart contract, web3.py integration, experiments, frontend | pending |
 
 ## Stack
 Python 3.12 / FastAPI (instead of Spring Boot, see docs/architecture.md) / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / web3.py / React + Vite + Tailwind / Python (pandas, matplotlib).
@@ -51,4 +52,5 @@ or your OS credential manager, never by embedding a token in the remote URL.
 ## Docs
 - `docs/architecture.md` design and business rules
 - `docs/database-schema.md` schema and import
+- `docs/besu.md` Besu QBFT network
 - `docs/cloud-deployment.md` cloud deployment plan
