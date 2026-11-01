@@ -1,0 +1,40 @@
+# Secrets / credentials (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+**/keystore/
+besu-network/**/data/
+besu-network/networkFiles/
+besu-network/nodes/
+secrets/
+
+# Dataset (large input; checksum is tracked in data/DATASET.sha256)
+data/*.csv
+data/*.zip
+
+# Build output / deps
+backend/target/
+frontend/node_modules/
+frontend/dist/
+contracts/out/
+contracts/cache/
+contracts/build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs and temp artefacts (curated results in experiments/results ARE tracked)
+*.log
+experiments/**/tmp/
