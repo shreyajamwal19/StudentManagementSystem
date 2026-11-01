@@ -1,0 +1,19 @@
+{
+  "csv_rows": 50000,
+  "marks_a_rows": 50000,
+  "versions_a_rows": 50000,
+  "marks_b_rows": 50000,
+  "versions_b_rows": 50000,
+  "marks_a_equals_marks_b": true,
+  "csv_vs_db_mismatches": 0,
+  "hash_recompute_mismatches": 0,
+  "pseudonym_pepper_consistent": true,
+  "distinct": {
+    "students": 1000,
+    "courses": 10,
+    "assessments": 5,
+    "faculty": 10
+  },
+  "all_checks_pass": true,
+  "verified_at_utc": "2026-11-01T19:44:39+00:00"
+}
