@@ -1,0 +1,40 @@
+{
+  "checked_at_utc": "2026-11-01T19:59:34+00:00",
+  "chain_id": 20260,
+  "client_version": "besu/v26.10.2/linux-x86_64/openjdk-java-25",
+  "validators": 4,
+  "peer_counts": [
+    3,
+    1,
+    1,
+    1
+  ],
+  "recent_block_proposers": [
+    "0x5ea8e2ebb1cb072dbb0f19173d1ab85888206419",
+    "0x698fe74d6307ec062e98b5cde06bc65f7ab81e06",
+    "0xc4ebe029b11c5cc6940f46a4435c3e74cd44fc02",
+    "0xff5a504896b00f5f907363a8f2d9ef66df55af6f"
+  ],
+  "block_time_seconds": {
+    "min": 2,
+    "max": 108,
+    "mean": 12.0
+  },
+  "distinct_proposers_in_last_12_blocks": 4,
+  "tx": {
+    "hash": "64ab68ebc1c2beaf289eab525db518c0926eefc003020a4521e9977188642a5f",
+    "status": 1,
+    "block_number": 90,
+    "gas_used": 21272,
+    "submit_seconds": 0.016,
+    "confirm_seconds": 2.129,
+    "included_in_block_hash": "dd53cee3f6ba60a2d353e928f50b5e01e0d751e5e9170b389c5f811b6f0608bd",
+    "tx_listed_in_block": true,
+    "receipt_matches_on_node4": true
+  },
+  "fault_tolerance": {
+    "one_validator_down_blocks_continue": true,
+    "two_validators_down_chain_halts": true,
+    "resumes_after_restart": true
+  }
+}
