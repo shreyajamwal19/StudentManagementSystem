@@ -1,0 +1,11 @@
+{
+  "verified_at_utc": "2026-11-03T07:05:25+00:00",
+  "chain_id": 20260,
+  "deploy_tx": "e0b2171d0e11ed5503ebd92a1e6aba81ca2f0453c5f45b572ce201c7015df8c5",
+  "deploy_block": 282,
+  "runtime_bytecode_bytes": 5942,
+  "accounts_with_correct_role": true,
+  "courses_assigned_correctly": true,
+  "courses": 10,
+  "solc": "0.8.38+commit.1835d247.Emscripten.clang"
+}

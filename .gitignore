@@ -40,3 +40,4 @@ venv/
 experiments/**/tmp/
 .pytest_cache/
 besu-network/pids/
+besu-network/deployment.json
