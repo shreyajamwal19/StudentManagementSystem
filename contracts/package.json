@@ -1,0 +1,2 @@
+{ "name": "academic-records-contracts", "private": true, "version": "1.0.0",
+  "scripts": { "compile": "node compile.js" }, "dependencies": { "solc": "^0.8.30" } }
