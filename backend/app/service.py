@@ -1,5 +1,6 @@
 """Marks service (the shared 'marks-core'). System A uses it as-is; System B will subclass it and override
 _after_apply() to hash and anchor each event on Besu. Order of checks: role -> record exists -> course scope -> state -> input."""
+import time
 from decimal import Decimal
 from typing import Optional
 from psycopg2.extras import RealDictCursor
@@ -92,11 +93,13 @@ class MarksService:
         return marks.quantize(Decimal("0.1"))
 
     def perform(self, u: User, record_id: str, action: str, marks: Optional[Decimal] = None, reason: Optional[str] = None):
+        t0 = time.perf_counter()
         spec = ACTIONS.get(action)
         if spec is None:
             raise ApiError(404, "Unknown action")
         if u.role != spec.role:
             raise ApiError(403, f"Action '{action}' requires role {spec.role}")
+        t = {"submit_ms": 0.0, "confirm_ms": 0.0, "verify_ms": 0.0}   # chain timings (System B); confirm_ms includes submit_ms
         with connection() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
             rec = self._fetch(cur, record_id, lock=True)
             if rec is None:
@@ -110,20 +113,33 @@ class MarksService:
                 new_marks = self._validate_marks(marks, rec["max_marks"])
             if spec.needs_reason and not (reason and reason.strip()):
                 raise ApiError(422, "reason is required for this action")
+            self._precheck(cur, rec, action, u, t)
             new_version = rec["version_no"] + 1
+            after = dict(rec, marks_obtained=new_marks, status=spec.to_status, version_no=new_version)
             cur.execute(f"UPDATE {self.marks_t} SET marks_obtained=%s, status=%s, version_no=%s WHERE record_id=%s",
                         (new_marks, spec.to_status, new_version, record_id))
-            cur.execute(f"INSERT INTO {self.versions_t} (record_id, version_no, action, marks_obtained, status, actor, created_at) "
-                        f"VALUES (%s,%s,%s,%s,%s,%s, now())",
-                        (record_id, new_version, action.upper(), new_marks, spec.to_status, u.username))
+            rhash, phash = self._hashes(cur, after)
+            cur.execute(f"INSERT INTO {self.versions_t} (record_id, version_no, action, marks_obtained, status, actor, record_hash, prev_hash, created_at) "
+                        f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s, now())",
+                        (record_id, new_version, action.upper(), new_marks, spec.to_status, u.username, rhash, phash))
             old = f"status={rec['status']};marks={rec['marks_obtained']};v={rec['version_no']}"
             new = f"status={spec.to_status};marks={new_marks};v={new_version}" + (f";reason={reason.strip()}" if reason else "")
             cur.execute("INSERT INTO audit_log (system, record_id, action, actor, old_value, new_value) VALUES (%s,%s,%s,%s,%s,%s)",
                         (self.sys.upper(), record_id, action.upper(), u.username, old, new))
-            result = dict(rec, marks_obtained=new_marks, status=spec.to_status, version_no=new_version)
-            self._after_apply(cur, result, action, u)
-            return result
+            extra = self._after_apply(cur, after, action, u, (rhash, phash), t) or {}
+        total = (time.perf_counter() - t0) * 1000
+        out = dict(after, **extra)
+        out["timings_ms"] = {"total_ms": round(total, 2), "db_ms": round(total - t["confirm_ms"] - t["verify_ms"], 2),
+                             "verify_ms": round(t["verify_ms"], 2), "submit_ms": round(t["submit_ms"], 2),
+                             "confirm_ms": round(t["confirm_ms"], 2)}
+        return out
 
-    def _after_apply(self, cur, rec, action: str, u: User) -> None:
-        """Hook for System B (hash + anchor on Besu). System A: nothing."""
+    # ---- hooks (System A: no-ops; System B overrides them) ------------------
+    def _precheck(self, cur, rec, action: str, u: User, t: dict) -> None:
+        return None
+
+    def _hashes(self, cur, after):
+        return (None, None)
+
+    def _after_apply(self, cur, after, action: str, u: User, hashes, t: dict):
         return None
