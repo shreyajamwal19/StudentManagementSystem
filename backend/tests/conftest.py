@@ -59,3 +59,5 @@ def pick(db, status, faculty, offset=0, table="marks_a"):
 def row(db, rid, table="marks_a"):
     c = db.cursor(); c.execute(f"SELECT marks_obtained, status, version_no FROM {table} WHERE record_id=%s", (rid,))
     return c.fetchone()
+
+from conftest_b import b_env  # noqa: E402,F401  (fixture for System B tests)
