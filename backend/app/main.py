@@ -8,8 +8,9 @@ from psycopg2.extras import RealDictCursor
 from .db import connection
 from .security import User, create_token, current_user, verify_password
 from .service import ApiError, MarksService
+from .service_b import MarksServiceB
 
-app = FastAPI(title="Academic Records - System A (conventional baseline)", version="0.3.0")
+app = FastAPI(title="Academic Records - System A (baseline) and System B (blockchain)", version="0.6.0")
 
 class LoginRequest(BaseModel):
     username: str
@@ -34,8 +35,8 @@ def login(body: LoginRequest):
     u = User(row["username"], row["role"], row["faculty_id"], row["student_id"])
     return {"access_token": create_token(u), "token_type": "bearer", "role": u.role}
 
-def build_router(system: str) -> APIRouter:
-    svc = MarksService(system)
+def build_router(system: str, svc: Optional[MarksService] = None) -> APIRouter:
+    svc = svc or MarksService(system)
     r = APIRouter(prefix=f"/api/{system}", tags=[f"system-{system}"])
 
     @r.get("/records")
@@ -60,6 +61,18 @@ def build_router(system: str) -> APIRouter:
         if u.role not in ("MODERATOR", "EXAM_ADMIN"):
             raise HTTPException(403, "Audit log requires MODERATOR or EXAM_ADMIN")
         return jsonable_encoder(svc.audit(record_id, limit))
+
+    if system == "b":
+        @r.get("/records/{record_id}/verify")
+        def verify(record_id: str, u: User = Depends(current_user)):
+            if u.role == "STUDENT":
+                raise HTTPException(403, "Verification requires FACULTY, MODERATOR or EXAM_ADMIN")
+            return jsonable_encoder(svc.verify(u, record_id))
+
+        @r.get("/records/{record_id}/chain-history")
+        def chain_history(record_id: str, u: User = Depends(current_user)):
+            return jsonable_encoder(svc.chain_history(u, record_id))
     return r
 
 app.include_router(build_router("a"))
+app.include_router(build_router("b", MarksServiceB()))
