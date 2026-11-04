@@ -1,0 +1,5 @@
+system,workload,runs,avg_latency_ms,std_latency_across_runs_ms,mean_within_run_std_ms,p95_latency_ms,throughput_tps,std_tps_across_runs,success_rate_pct,db_ms,chain_verify_ms,chain_submit_ms,chain_confirm_ms,server_total_ms
+A,50,2,260.669,22.629,70.078,391.338,29.242,3.384,100.0,207.733,0.0,0.0,0.0,207.733
+A,100,2,250.776,38.788,95.476,478.648,31.42,4.605,100.0,201.463,0.0,0.0,0.0,201.463
+B,50,2,2431.936,512.652,557.236,3899.763,3.174,0.607,100.0,362.471,228.606,90.607,1747.243,2338.319
+B,100,2,2016.722,3.433,336.644,2393.233,3.92,0.033,100.0,324.566,160.328,61.342,1455.447,1940.341
