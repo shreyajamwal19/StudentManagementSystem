@@ -1,5 +1,6 @@
 """PostgreSQL connection pool. Uses standard PG* environment variables (PGHOST, PGDATABASE, ...)."""
 from contextlib import contextmanager
+import os
 import threading
 from psycopg2.pool import ThreadedConnectionPool
 
@@ -10,7 +11,7 @@ def _get_pool():
     global _pool
     with _lock:
         if _pool is None:
-            _pool = ThreadedConnectionPool(1, 10)
+            _pool = ThreadedConnectionPool(1, int(os.environ.get("DB_POOL_MAX", "30")))
         return _pool
 
 @contextmanager
