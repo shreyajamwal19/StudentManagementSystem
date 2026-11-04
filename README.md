@@ -12,7 +12,9 @@ Not a production university ERP.
 | 3. System A (conventional baseline: JWT, RBAC, state machine, audit log) | done, 19 tests pass |
 | 4. Besu QBFT network (4 validators) | done, verified |
 | 5. Solidity contract, signer accounts, deployment | done, 12 tests pass on Besu |
-| 6+. web3.py integration (System B), tamper detection, experiments, frontend | pending |
+| 6. System B: web3.py anchoring, verification API, tamper detection | done, 29 backend tests pass |
+| 7-8. Security experiments T1-T6 (both systems) | done, results in experiments/results |
+| 9+. Initial anchoring of all 50,000 records (partial in sandbox), benchmarks, provenance diagram, frontend | pending |
 
 ## Stack
 Python 3.12 / FastAPI (instead of Spring Boot, see docs/architecture.md) / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / web3.py / React + Vite + Tailwind / Python (pandas, matplotlib).
@@ -54,5 +56,6 @@ or your OS credential manager, never by embedding a token in the remote URL.
 - `docs/architecture.md` design and business rules
 - `docs/database-schema.md` schema and import
 - `docs/besu.md` Besu QBFT network
+- `docs/security-experiments.md` T1-T6 method and results
 - `docs/smart-contract.md` contract design, functions, deployment
 - `docs/cloud-deployment.md` cloud deployment plan
