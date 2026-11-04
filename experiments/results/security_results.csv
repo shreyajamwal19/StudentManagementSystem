@@ -1,0 +1,13 @@
+test,description,system,outcome,evidence
+T1,Faculty not assigned to the course tries to change marks,A,Prevented,HTTP 403; DB unchanged=True
+T2,Assigned faculty edits marks of a LOCKED record (direct edit and correction bypass),A,Prevented,HTTP 409/409; DB unchanged=True
+T3,Manual SQL alteration of marks of a locked record,A,Not Detected,DB write allowed (14.7 -> 13.7); no audit_log entry (0 rows); no integrity check exists (verify endpoint HTTP 404)
+T4,Manual SQL alteration of a historical version row,A,Not Detected,history row edited; no audit_log entry (0 rows); no integrity check exists
+T5,"Wrong-role users attempt faculty actions (and, for B, call the contract directly)",A,Prevented,"moderator submit HTTP 403, admin update HTTP 403; DB unchanged=True"
+T6,"Authorized correction passes moderation, approval and locking again",A,Allowed,11/11 steps HTTP 200; final marks=12.0 status=Locked version=12
+T1,Faculty not assigned to the course tries to change marks,B,Prevented,HTTP 403; DB unchanged=True; chain events 1->1
+T2,Assigned faculty edits marks of a LOCKED record (direct edit and correction bypass),B,Prevented,HTTP 409/409; DB unchanged=True; chain events 1->1
+T3,Manual SQL alteration of marks of a locked record,B,Detected,DB write allowed (14.7 -> 13.7); verify=INTEGRITY_MISMATCH db_hash!=chain_hash=True; legit follow-up action HTTP 409
+T4,Manual SQL alteration of a historical version row,B,Detected,verify=INTEGRITY_MISMATCH history_consistent=False mismatched_versions=[1]
+T5,"Wrong-role users attempt faculty actions (and, for B, call the contract directly)",B,Prevented,"moderator submit HTTP 403, admin update HTTP 403; DB unchanged=True; direct contract call by moderator signer reverted; chain events 1->1"
+T6,"Authorized correction passes moderation, approval and locking again",B,Allowed,11/11 steps HTTP 200; final marks=12.0 status=Locked version=12; chain events=12; verify=MATCH

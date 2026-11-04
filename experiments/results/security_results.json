@@ -1,0 +1,103 @@
+{
+  "run_at_utc": "2026-11-03T18:52:48+00:00",
+  "environment": {
+    "contract_address": "0x862B0FE7d6B6408D7A661Af35A0c087deE4BBFAc",
+    "chain_id": 20260,
+    "deploy_block": 724,
+    "deploy_tx": "0xf8393a3ad83692a8e0d5b99ba0c87eca4dacad38dcb2f43b900fffcb5a2bdc48",
+    "records": {
+      "T1": "REC000007",
+      "T2": "REC000001",
+      "T3": "REC000003",
+      "T4": "REC000005",
+      "T5": "REC000255",
+      "T6": "REC000302"
+    }
+  },
+  "results": [
+    {
+      "test": "T1",
+      "description": "Faculty not assigned to the course tries to change marks",
+      "system": "A",
+      "outcome": "Prevented",
+      "evidence": "HTTP 403; DB unchanged=True"
+    },
+    {
+      "test": "T2",
+      "description": "Assigned faculty edits marks of a LOCKED record (direct edit and correction bypass)",
+      "system": "A",
+      "outcome": "Prevented",
+      "evidence": "HTTP 409/409; DB unchanged=True"
+    },
+    {
+      "test": "T3",
+      "description": "Manual SQL alteration of marks of a locked record",
+      "system": "A",
+      "outcome": "Not Detected",
+      "evidence": "DB write allowed (14.7 -> 13.7); no audit_log entry (0 rows); no integrity check exists (verify endpoint HTTP 404)"
+    },
+    {
+      "test": "T4",
+      "description": "Manual SQL alteration of a historical version row",
+      "system": "A",
+      "outcome": "Not Detected",
+      "evidence": "history row edited; no audit_log entry (0 rows); no integrity check exists"
+    },
+    {
+      "test": "T5",
+      "description": "Wrong-role users attempt faculty actions (and, for B, call the contract directly)",
+      "system": "A",
+      "outcome": "Prevented",
+      "evidence": "moderator submit HTTP 403, admin update HTTP 403; DB unchanged=True"
+    },
+    {
+      "test": "T6",
+      "description": "Authorized correction passes moderation, approval and locking again",
+      "system": "A",
+      "outcome": "Allowed",
+      "evidence": "11/11 steps HTTP 200; final marks=12.0 status=Locked version=12"
+    },
+    {
+      "test": "T1",
+      "description": "Faculty not assigned to the course tries to change marks",
+      "system": "B",
+      "outcome": "Prevented",
+      "evidence": "HTTP 403; DB unchanged=True; chain events 1->1"
+    },
+    {
+      "test": "T2",
+      "description": "Assigned faculty edits marks of a LOCKED record (direct edit and correction bypass)",
+      "system": "B",
+      "outcome": "Prevented",
+      "evidence": "HTTP 409/409; DB unchanged=True; chain events 1->1"
+    },
+    {
+      "test": "T3",
+      "description": "Manual SQL alteration of marks of a locked record",
+      "system": "B",
+      "outcome": "Detected",
+      "evidence": "DB write allowed (14.7 -> 13.7); verify=INTEGRITY_MISMATCH db_hash!=chain_hash=True; legit follow-up action HTTP 409"
+    },
+    {
+      "test": "T4",
+      "description": "Manual SQL alteration of a historical version row",
+      "system": "B",
+      "outcome": "Detected",
+      "evidence": "verify=INTEGRITY_MISMATCH history_consistent=False mismatched_versions=[1]"
+    },
+    {
+      "test": "T5",
+      "description": "Wrong-role users attempt faculty actions (and, for B, call the contract directly)",
+      "system": "B",
+      "outcome": "Prevented",
+      "evidence": "moderator submit HTTP 403, admin update HTTP 403; DB unchanged=True; direct contract call by moderator signer reverted; chain events 1->1"
+    },
+    {
+      "test": "T6",
+      "description": "Authorized correction passes moderation, approval and locking again",
+      "system": "B",
+      "outcome": "Allowed",
+      "evidence": "11/11 steps HTTP 200; final marks=12.0 status=Locked version=12; chain events=12; verify=MATCH"
+    }
+  ]
+}
