@@ -1,0 +1,15 @@
+{
+  "summarized_at_utc": "2026-11-03T08:47:08+00:00",
+  "records_in_dataset": 50000,
+  "records_anchored": 19700,
+  "anchoring_complete": false,
+  "import_transactions": 80,
+  "records_per_tx_mean": 246.2,
+  "confirm_ms_per_tx": {
+    "mean": 9289.9,
+    "median": 4788.0,
+    "max": 53003.7
+  },
+  "first_block": 470,
+  "last_block": 640
+}
