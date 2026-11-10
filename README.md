@@ -1,67 +1,44 @@
 # Blockchain-Based Secure Academic Records Management Framework (Research Prototype)
 
-A research proof of concept comparing a **conventional database-only system (System A)** with a
-**PostgreSQL + Hyperledger Besu system (System B)** for tamper-evident academic records.
-Not a production university ERP.
+A proof of concept comparing a **conventional database-only system (System A)** with a **PostgreSQL + Hyperledger Besu system (System B)**
+for tamper-evident academic records. Not a production university ERP. Blockchain complements cloud/database storage; marks never go on-chain, only hashes.
 
-## Status
-| Milestone | State |
+## What is implemented (all verified by tests/experiments run in the development sandbox)
+| Part | Status |
 |---|---|
-| 1. Project setup, Git, PostgreSQL Docker Compose, docs | done |
-| 2. Schema + dataset import | done (verified; see experiments/results/import_verification.json) |
-| 3. System A (conventional baseline: JWT, RBAC, state machine, audit log) | done, 19 tests pass |
-| 4. Besu QBFT network (4 validators) | done, verified |
-| 5. Solidity contract, signer accounts, deployment | done, 12 tests pass on Besu |
-| 6. System B: web3.py anchoring, verification API, tamper detection | done, 29 backend tests pass |
-| 7-8. Security experiments T1-T6 (both systems) | done, results in experiments/results |
-| 9. Benchmark harness + analysis + figures (smoke-tested only; full run on your machine) | done, results pending |
-| 10. Provenance experiment + diagram (Result 4) | done, verified on Besu |
-| 11. Minimal React dashboard | done (build + render tests pass; not browser-tested) |
-| 12. Full 50,000-record anchoring, full benchmark, final docs and rerun script | pending (needs your machine) |
+| PostgreSQL schema + import of the 50,000-record CSV into identical System A / System B tables | done, verified (`experiments/results/import_verification.json`) |
+| System A: JWT auth, 4 roles, course-scoped faculty, state machine, audit log | done, tests pass |
+| Hyperledger Besu QBFT network (4 validators, chainId 20260) | done, verified incl. fault-tolerance test |
+| Solidity contract (roles, course assignment, state machine, prevHash linkage, append-only) | done, 12 tests on Besu |
+| System B: SHA-256 canonical hashing, web3.py anchoring, verification API, tamper detection | done, 10 tests on Besu (31 backend tests total) |
+| Security experiments T1-T6 on both systems | done (`experiments/results/security_results.*`) |
+| Provenance experiment + diagram (`Fig_Provenance.png`) | done |
+| Benchmark harness, analysis, `Fig_Performance.png` generator | done, smoke-tested only |
+| Minimal React dashboard | done (build + render tests; not browser-tested) |
+| Anchoring all 50,000 records, full benchmark, cloud demo, Docker packaging | **pending, needs your machine** (see `docs/reproducibility.md`) |
 
-## Stack
-Python 3.12 / FastAPI (instead of Spring Boot, see docs/architecture.md) / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / web3.py / React + Vite + Tailwind / Python (pandas, matplotlib).
+Deviation from the original plan: the backend is Python/FastAPI with web3.py (instead of Spring Boot/Web3j) because Maven Central was unreachable in the development sandbox. Confirm with your supervisor and state it in the paper.
 
 ## Layout
-`backend/` Spring Boot · `contracts/` Solidity · `besu-network/` QBFT network · `frontend/` dashboard ·
-`experiments/` benchmarks, security tests, results · `docs/` design notes · `data/` dataset (CSV not tracked) · `scripts/` helpers
+`backend/` FastAPI app + tests · `contracts/` Solidity, compile/deploy, tests · `besu-network/` QBFT config and scripts · `frontend/` dashboard ·
+`experiments/` security, provenance, benchmark, results, figures · `scripts/` import, anchoring, accounts, `run_all.sh` · `docs/` design notes · `data/` dataset (CSV not tracked, checksum tracked)
 
-## Quick start (so far)
+## Quick start
 ```bash
-cp .env.example .env          # then edit POSTGRES_PASSWORD
-docker compose up -d postgres
-docker compose ps             # wait for "healthy"
-./scripts/install_hooks.sh    # enable secret scan before commits
+cp .env.example .env && docker compose up -d postgres      # PostgreSQL (compose file not yet tested by the author)
+./scripts/install_hooks.sh                                  # secret scan before commits
+pip install -r backend/requirements.txt && pip install web3 pandas matplotlib
+export BESU_BIN=/path/to/besu-26.10.2/bin/besu              # Java 25 required
+(cd besu-network && ./setup.sh && ./start.sh)
+export PGHOST=localhost PGDATABASE=academic_records PGUSER=academic_app PGPASSWORD=... \
+       PSEUDONYM_PEPPER=$(python3 -c "import secrets;print(secrets.token_hex(32))") ACCOUNTS_PASSWORD=... JWT_SECRET=$(python3 -c "import secrets;print(secrets.token_hex(32))")
+./scripts/run_all.sh --smoke                                # import, deploy, anchor, tests, T1-T6, provenance, smoke benchmark
 ```
-Place `synthetic_student_marks_50000_1.csv` in `data/` and verify: `cd data && sha256sum -c DATASET.sha256`
-
-## Import dataset
-```bash
-pip install psycopg2-binary
-export PGHOST=localhost PGDATABASE=academic_records PGUSER=academic_app PGPASSWORD=... PSEUDONYM_PEPPER=...
-python3 scripts/import_dataset.py && python3 scripts/verify_import.py
-```
-
-## Run System A
-```bash
-pip install -r backend/requirements.txt
-export JWT_SECRET=<32+ random chars> SEED_PASSWORD=<demo password>   # plus PGHOST/PGDATABASE/PGUSER/PGPASSWORD
-python3 scripts/seed_users.py 20
-cd backend && uvicorn app.main:app --port 8000     # API docs at /docs
-cd backend && python3 -m pytest -q                  # uses a throw-away DB copy (role needs CREATEDB)
-```
+Then `scripts/seed_users.py`, `uvicorn app.main:app` (in `backend/`), and `cd frontend && npm install && npm run dev`.
 
 ## Security rules
-No secrets, keys, `.env` files or tokens are ever committed. Authenticate to GitHub with `gh auth login`
-or your OS credential manager, never by embedding a token in the remote URL.
+No secrets, keys, `.env` files or tokens are committed (`.gitignore` + pre-commit scan). Authenticate to GitHub with `gh auth login` or a credential manager, never a token in a remote URL.
 
 ## Docs
-- `docs/architecture.md` design and business rules
-- `docs/database-schema.md` schema and import
-- `docs/besu.md` Besu QBFT network
-- `docs/frontend.md` dashboard
-- `docs/provenance.md` provenance experiment
-- `docs/benchmarking.md` benchmark method and how to run
-- `docs/security-experiments.md` T1-T6 method and results
-- `docs/smart-contract.md` contract design, functions, deployment
-- `docs/cloud-deployment.md` cloud deployment plan
+`docs/architecture.md` · `docs/database-schema.md` · `docs/besu.md` · `docs/smart-contract.md` · `docs/security-experiments.md` · `docs/provenance.md` · `docs/benchmarking.md` ·
+`docs/frontend.md` · `docs/privacy-and-limitations.md` · `docs/reproducibility.md` · `docs/cloud-deployment.md`
