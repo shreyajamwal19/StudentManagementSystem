@@ -138,3 +138,23 @@ def test_chain_failure_rolls_back_database(client, tok, b_env, monkeypatch):
     assert r.status_code == 409 and "Blockchain rejected" in r.text
     assert row(b_env.db, rid, "marks_b") == before
     assert sql(b_env, "SELECT count(*) FROM record_versions_b WHERE record_id=%s", rid).fetchone()[0] == 1
+
+# ---------- dashboard support endpoints ----------
+def test_overview_and_results_endpoints(client, tok, b_env):
+    r = client.get("/api/overview", headers=tok["mod1"]); assert r.status_code == 200
+    j = r.json(); assert sum(j["status_a"].values()) == 50000 and j["chain"]["chain_id"] == 20260
+    assert client.get("/api/overview", headers=tok["stu1"]).status_code == 403
+    assert client.get("/api/overview").status_code == 401
+    assert client.get("/api/experiments/security", headers=tok["mod1"]).status_code in (200, 404)
+
+def test_demo_tamper_is_off_by_default_then_detected_when_enabled(client, tok, b_env, monkeypatch):
+    rid = rid_of(b_env, "Locked", i=4)
+    body = {"record_id": rid, "marks": "1.0"}
+    monkeypatch.delenv("DEMO_MODE", raising=False)
+    assert client.post("/api/b/demo/tamper", json=body, headers=tok["admin1"]).status_code == 404
+    monkeypatch.setenv("DEMO_MODE", "1")
+    assert client.post("/api/b/demo/tamper", json=body, headers=tok["fac01"]).status_code == 403          # only EXAM_ADMIN
+    assert client.post("/api/b/demo/tamper", json={"record_id": rid, "marks": "9999"}, headers=tok["admin1"]).status_code == 422   # DB constraint
+    r = client.post("/api/b/demo/tamper", json=body, headers=tok["admin1"]); assert r.status_code == 200, r.text
+    assert sql(b_env, "SELECT count(*) FROM audit_log WHERE record_id=%s AND system='B'", rid).fetchone()[0] == 0    # leaves no trace in the app
+    assert verify(client, tok, rid)["result"] == "INTEGRITY_MISMATCH"

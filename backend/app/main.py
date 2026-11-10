@@ -1,9 +1,11 @@
 """System A (conventional baseline) REST API. Run: uvicorn app.main:app --app-dir backend"""
+import csv, json, os, pathlib
 from decimal import Decimal
 from typing import Optional
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+import psycopg2
 from psycopg2.extras import RealDictCursor
 from .db import connection
 from .security import User, create_token, current_user, verify_password
@@ -15,6 +17,12 @@ app = FastAPI(title="Academic Records - System A (baseline) and System B (blockc
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+class TamperRequest(BaseModel):
+    record_id: str
+    marks: Decimal
 
 class ActionRequest(BaseModel):
     marks: Optional[Decimal] = None
@@ -34,6 +42,42 @@ def login(body: LoginRequest):
         raise HTTPException(401, "Invalid credentials")
     u = User(row["username"], row["role"], row["faculty_id"], row["student_id"])
     return {"access_token": create_token(u), "token_type": "bearer", "role": u.role}
+
+@app.get("/api/overview")
+def overview(u: User = Depends(current_user)):
+    if u.role == "STUDENT":
+        raise HTTPException(403, "Not available for students")
+    out = {}
+    with connection() as conn, conn.cursor() as cur:
+        for sx in ("a", "b"):
+            cur.execute(f"SELECT status, count(*) FROM marks_{sx} GROUP BY status ORDER BY status")
+            out[f"status_{sx}"] = {k: v for k, v in cur.fetchall()}
+        cur.execute("SELECT count(DISTINCT record_id) FROM chain_anchor"); out["records_anchored"] = cur.fetchone()[0]
+    out["demo_mode"] = os.environ.get("DEMO_MODE") == "1"
+    try:
+        from .chain import get_chain
+        ch = get_chain()
+        out["chain"] = {"block_number": ch.w3.eth.block_number, "chain_id": ch.chain_id, "contract": ch.c.address}
+    except Exception:
+        out["chain"] = None
+    return out
+
+@app.get("/api/experiments/security")
+def exp_security(u: User = Depends(current_user)):
+    f = ROOT / "experiments/results/security_results.json"
+    if not f.exists():
+        raise HTTPException(404, "Run experiments/security/run_security_experiments.py first")
+    return json.loads(f.read_text())
+
+@app.get("/api/experiments/performance")
+def exp_performance(u: User = Depends(current_user)):
+    f = ROOT / "experiments/results/performance_summary.csv"
+    smoke = False
+    if not f.exists():
+        f = ROOT / "experiments/results/performance_summary_smoke.csv"; smoke = True
+    if not f.exists():
+        raise HTTPException(404, "Run experiments/benchmark first")
+    return {"smoke_test_only": smoke, "rows": list(csv.DictReader(f.open()))}
 
 def build_router(system: str, svc: Optional[MarksService] = None) -> APIRouter:
     svc = svc or MarksService(system)
@@ -61,6 +105,26 @@ def build_router(system: str, svc: Optional[MarksService] = None) -> APIRouter:
         if u.role not in ("MODERATOR", "EXAM_ADMIN"):
             raise HTTPException(403, "Audit log requires MODERATOR or EXAM_ADMIN")
         return jsonable_encoder(svc.audit(record_id, limit))
+
+    @r.post("/demo/tamper")
+    def demo_tamper(body: TamperRequest, u: User = Depends(current_user)):
+        """DEMO ONLY (DEMO_MODE=1, EXAM_ADMIN): simulates an insider editing the database directly, bypassing the application,
+        its audit log and its version history. Used to demonstrate tamper detection."""
+        if os.environ.get("DEMO_MODE") != "1":
+            raise HTTPException(404, "Demo mode is disabled")
+        if u.role != "EXAM_ADMIN":
+            raise HTTPException(403, "Requires EXAM_ADMIN")
+        try:
+            with connection() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(f"SELECT marks_obtained FROM {svc.marks_t} WHERE record_id=%s FOR UPDATE", (body.record_id,))
+                row = cur.fetchone()
+                if row is None:
+                    raise HTTPException(404, "Record not found")
+                cur.execute(f"UPDATE {svc.marks_t} SET marks_obtained=%s WHERE record_id=%s", (body.marks, body.record_id))
+        except psycopg2.Error as e:
+            raise HTTPException(422, f"Database rejected the value: {str(e).splitlines()[0]}")
+        return jsonable_encoder({"record_id": body.record_id, "system": system.upper(), "marks_before": row["marks_obtained"], "marks_after": body.marks,
+                                 "note": "Written directly to the database: no audit_log entry, no version row, no blockchain transaction."})
 
     if system == "b":
         @r.get("/records/{record_id}/verify")
