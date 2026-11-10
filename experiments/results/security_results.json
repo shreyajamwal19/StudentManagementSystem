@@ -1,10 +1,10 @@
 {
-  "run_at_utc": "2026-11-03T18:52:48+00:00",
+  "run_at_utc": "2026-11-09T21:05:51+00:00",
   "environment": {
-    "contract_address": "0x862B0FE7d6B6408D7A661Af35A0c087deE4BBFAc",
+    "contract_address": "0x85067Df4Ea8D9893660e7Ae6FDFe7512cB4f7815",
     "chain_id": 20260,
-    "deploy_block": 724,
-    "deploy_tx": "0xf8393a3ad83692a8e0d5b99ba0c87eca4dacad38dcb2f43b900fffcb5a2bdc48",
+    "deploy_block": 33932,
+    "deploy_tx": "0xfada43c1332a5c7e59f82c6261b86e0ee93eb2efaeeee72213dbae5b60292ca8",
     "records": {
       "T1": "REC000007",
       "T2": "REC000001",
