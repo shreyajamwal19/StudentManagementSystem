@@ -16,7 +16,8 @@ Not a production university ERP.
 | 7-8. Security experiments T1-T6 (both systems) | done, results in experiments/results |
 | 9. Benchmark harness + analysis + figures (smoke-tested only; full run on your machine) | done, results pending |
 | 10. Provenance experiment + diagram (Result 4) | done, verified on Besu |
-| 11+. Initial anchoring of all 50,000 records (partial in sandbox), frontend, final docs | pending |
+| 11. Minimal React dashboard | done (build + render tests pass; not browser-tested) |
+| 12. Full 50,000-record anchoring, full benchmark, final docs and rerun script | pending (needs your machine) |
 
 ## Stack
 Python 3.12 / FastAPI (instead of Spring Boot, see docs/architecture.md) / PostgreSQL / Hyperledger Besu (QBFT) / Solidity / web3.py / React + Vite + Tailwind / Python (pandas, matplotlib).
@@ -58,6 +59,7 @@ or your OS credential manager, never by embedding a token in the remote URL.
 - `docs/architecture.md` design and business rules
 - `docs/database-schema.md` schema and import
 - `docs/besu.md` Besu QBFT network
+- `docs/frontend.md` dashboard
 - `docs/provenance.md` provenance experiment
 - `docs/benchmarking.md` benchmark method and how to run
 - `docs/security-experiments.md` T1-T6 method and results
